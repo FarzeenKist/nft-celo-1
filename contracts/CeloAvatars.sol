@@ -78,6 +78,9 @@ contract CeloAvatars is ERC721, ERC721URIStorage, Ownable {
         mintFee = newMintfee * 1 ether;
     }
 
+    /**
+        * @dev allows the contract's owner to update the address of the ERC20 token address
+     */
     function changeMintFeeToken(address _newMintFeeToken) public onlyOwner {
         require(_newMintFeeToken != address(0), "Zero address is not a valid address");
         mintFeeToken = IERC20(_newMintFeeToken);
