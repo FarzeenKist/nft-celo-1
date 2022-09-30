@@ -30,8 +30,11 @@ contract CeloAvatars is ERC721, ERC721URIStorage, Ownable {
 
     /// @dev mints an NFT
     /// @notice mintFee is paid first using the ERC20 token
-    function safeMint(address to, string memory uri) public payable {
+    function safeMint(address to, string calldata uri) public payable {
         require(to != address(0), "Invalid recipient");
+        // uri starts with "https://ipfs.infura.io/ipfs/" which is 28 characters in length
+        require(bytes(uri).length > 28, "Invalid uri"); 
+
         require(
             mintFeeToken.transferFrom(msg.sender, owner(), mintFee),
             "Transfer failed."
@@ -43,6 +46,8 @@ contract CeloAvatars is ERC721, ERC721URIStorage, Ownable {
 
         //track tokenId;
         ownerNFTs[to].push(tokenId);
+
+
     }
 
     /// @dev Returns all tokenIDs belonging to a user
@@ -51,6 +56,7 @@ contract CeloAvatars is ERC721, ERC721URIStorage, Ownable {
         view
         returns (uint256[] memory)
     {
+        require(_wallet != address(0), "Address zero is not a valid address");
         uint length = ownerNFTs[_wallet].length;
         uint[] memory ownedTokens = new uint[](length);
         uint currentIndex = 0;
@@ -65,6 +71,18 @@ contract CeloAvatars is ERC721, ERC721URIStorage, Ownable {
         return ownedTokens;
     }
 
+    /**
+        * @dev allows the contract's owner to update the mint fee
+     */
+    function changeMintFee(uint newMintfee) public onlyOwner {
+        mintFee = newMintfee * 1 ether;
+    }
+
+    function changeMintFeeToken(address _newMintFeeToken) public onlyOwner {
+        require(_newMintFeeToken != address(0), "Zero address is not a valid address");
+        mintFeeToken = IERC20(_newMintFeeToken);
+    }
+
     /// @dev returns minting fee
     function getMintingFee() public view returns (uint256) {
         return mintFee;
@@ -77,7 +95,7 @@ contract CeloAvatars is ERC721, ERC721URIStorage, Ownable {
     // The following functions are overrides required by Solidity.
 
 
-        /**
+     /**
      * @dev See {IERC721-transferFrom}.
      * Changes is made to transferFrom to keep track of tokens ownership
      */
